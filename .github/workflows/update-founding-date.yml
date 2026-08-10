@@ -1,0 +1,45 @@
+name: Update Company Founding Date
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add founding date to website
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old_meta = 'SKYHEIGHTS OUTSOURCING SOLUTIONS - Head Office Chandpur, branches in Noorpur, Dhampur, Nehtaur, Dhanaura and Moradabad.'
+          new_meta = 'SKYHEIGHTS OUTSOURCING SOLUTIONS - Founded 30 September 2024 - Head Office Chandpur, branches in Noorpur, Dhampur, Nehtaur, Dhanaura and Moradabad.'
+          s = s.replace(old_meta, new_meta)
+          old_intro = 'SKYHEIGHTS OUTSOURCING SOLUTIONS is a growing outsourcing company built with a clear purpose:'
+          new_intro = 'Founded on 30 September 2024, SKYHEIGHTS OUTSOURCING SOLUTIONS is a growing outsourcing company built with a clear purpose:'
+          s = s.replace(old_intro, new_intro)
+          marker = '<div class="leaders">'
+          if 'Founded: 30 September 2024' not in s and marker in s:
+              s = s.replace(marker, '<div style="text-align:center;margin:0 auto 30px"><span class="tag">FOUNDED</span><h3 style="color:#071b3a;margin:10px 0 0;font-size:24px">30 September 2024</h3></div>' + marker, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit website update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes needed."
+          else
+            git commit -m "Add company founding date"
+            git push
+          fi
