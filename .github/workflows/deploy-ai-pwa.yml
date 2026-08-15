@@ -1,0 +1,36 @@
+name: Deploy Sky Heights AI PWA
+on:
+  push:
+    branches: [ai-agent-v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp ai-agent-v1/index.html _site/index.html
+          cp ai-agent-v1/manifest.json _site/manifest.json
+          cp ai-agent-v1/service-worker.js _site/service-worker.js
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
